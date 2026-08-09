@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Кинозал — онлайн-кинотеатр</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <a href="index.html" class="logo">КИНО<span>ЗАЛ</span></a>
+    <nav>
+      <a href="index.html">Главная</a>
+    </nav>
+  </header>
+
+  <section class="hero" id="hero">
+    <div class="hero__content">
+      <p class="hero__eyebrow">СЕЙЧАС В АФИШЕ</p>
+      <h1 class="hero__title" id="hero-title">Загрузка…</h1>
+      <p class="hero__meta" id="hero-meta"></p>
+      <p class="hero__desc" id="hero-desc"></p>
+      <a class="btn btn--marquee" id="hero-link" href="#">▶ Смотреть</a>
+    </div>
+  </section>
+
+  <div class="filmstrip"></div>
+
+  <div class="toolbar">
+    <div class="toolbar__filters" id="genre-filters"></div>
+    <input type="text" id="search-input" placeholder="Поиск фильма…" />
+  </div>
+
+  <main class="grid" id="movie-grid"></main>
+
+  <footer class="site-footer">
+    Кинозал · демонстрационный проект онлайн-кинотеатра
+  </footer>
+
+  <script src="movies.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 // script.js
-// Общая логика для всех страниц: index.html, movie.html, player.html
+// Общая логика для всех страниц: index.html, movie.html, movies.html, player.html
 
 function getQueryParam(name) {
   const params = new URLSearchParams(window.location.search);
@@ -23,7 +23,7 @@ function formatDuration(min) {
   return `${h} ч ${m} мин`;
 }
 
-/* ---------- Карточка фильма (используется на index.html) ---------- */
+/* ---------- Карточка фильма (используется в сетках) ---------- */
 
 function movieCardHTML(movie) {
   return `
@@ -40,8 +40,8 @@ function movieCardHTML(movie) {
   `;
 }
 
-function renderGrid(list) {
-  const grid = document.getElementById("movie-grid");
+function renderGrid(elId, list) {
+  const grid = document.getElementById(elId);
   if (!grid) return;
   if (list.length === 0) {
     grid.innerHTML = `<p class="empty-state">Ничего не найдено. Попробуйте другой запрос или жанр.</p>`;
@@ -56,16 +56,65 @@ function allGenres() {
   return Array.from(set).sort();
 }
 
-function initIndexPage() {
+/* ---------- Общий рендер карточки-описания фильма ---------- */
+/* Используется и на главной (для фильма №1), и на movie.html (для любого id) */
+
+function renderDetailHTML(movie, watchHref) {
+  return `
+    <div class="detail__poster" style="${posterStyle(movie)}">
+      <span class="card__icon card__icon--big">${movie.poster.icon}</span>
+    </div>
+    <div class="detail__info">
+      <h1 class="detail__title">${movie.title}</h1>
+      <p class="detail__meta">${movie.year} · ${movie.country} · ${formatDuration(movie.duration)} · ★ ${movie.rating}</p>
+      <div class="detail__genres">
+        ${movie.genre.map((g) => `<span class="tag">${g}</span>`).join("")}
+      </div>
+      <p class="detail__desc">${movie.description}</p>
+      <a class="btn btn--marquee" href="${watchHref}">▶ Смотреть</a>
+    </div>
+  `;
+}
+
+/* ---------- Главная страница (index.html) — один главный фильм ---------- */
+
+function initHomePage() {
+  const container = document.getElementById("home-detail");
+  if (!container) return; // мы не на главной странице
+
+  const mainMovie = MOVIES[0];
+  if (!mainMovie) {
+    container.innerHTML = `<p class="empty-state">Фильм ещё не добавлен. Заполните movies.js.</p>`;
+    return;
+  }
+
+  document.title = `${mainMovie.title} — Кинозал`;
+  container.innerHTML = renderDetailHTML(mainMovie, `player.html?id=${mainMovie.id}`);
+
+  // Раздел "Другие фильмы" — появляется сам, когда в movies.js больше одного фильма
+  const others = MOVIES.slice(1);
+  const otherSection = document.getElementById("other-movies");
+  if (otherSection) {
+    if (others.length > 0) {
+      otherSection.style.display = "";
+      renderGrid("other-grid", others);
+    } else {
+      otherSection.style.display = "none";
+    }
+  }
+}
+
+/* ---------- Каталог всех фильмов (movies.html) ---------- */
+
+function initCatalogPage() {
   const grid = document.getElementById("movie-grid");
-  if (!grid) return; // мы не на главной странице
+  if (!grid) return; // мы не на странице каталога
 
   const searchInput = document.getElementById("search-input");
   const filterBar = document.getElementById("genre-filters");
 
   let activeGenre = "Все";
 
-  // строим кнопки жанров
   const genres = ["Все", ...allGenres()];
   filterBar.innerHTML = genres
     .map(
@@ -81,7 +130,7 @@ function initIndexPage() {
       const matchesQuery = m.title.toLowerCase().includes(query);
       return matchesGenre && matchesQuery;
     });
-    renderGrid(filtered);
+    renderGrid("movie-grid", filtered);
   }
 
   filterBar.addEventListener("click", (e) => {
@@ -95,20 +144,10 @@ function initIndexPage() {
 
   searchInput.addEventListener("input", applyFilters);
 
-  // рендер стартового состояния + случайный фильм в афише (hero)
-  renderGrid(MOVIES);
-  const featured = MOVIES[Math.floor(Math.random() * MOVIES.length)];
-  const hero = document.getElementById("hero");
-  if (hero) {
-    hero.style.backgroundImage = `linear-gradient(0deg, rgba(18,16,14,1) 0%, rgba(18,16,14,0.55) 60%, rgba(18,16,14,0.25) 100%), linear-gradient(160deg, ${featured.poster.from}, ${featured.poster.to})`;
-    document.getElementById("hero-title").textContent = featured.title;
-    document.getElementById("hero-desc").textContent = featured.description;
-    document.getElementById("hero-meta").textContent = `${featured.year} · ${featured.genre.join(", ")} · ${formatDuration(featured.duration)} · ★ ${featured.rating}`;
-    document.getElementById("hero-link").href = `movie.html?id=${featured.id}`;
-  }
+  renderGrid("movie-grid", MOVIES);
 }
 
-/* ---------- Страница фильма ---------- */
+/* ---------- Страница отдельного фильма (movie.html?id=) ---------- */
 
 function initMoviePage() {
   const container = document.getElementById("movie-detail");
@@ -123,36 +162,29 @@ function initMoviePage() {
   }
 
   document.title = `${movie.title} — Кинозал`;
-
-  container.innerHTML = `
-    <div class="detail__poster" style="${posterStyle(movie)}">
-      <span class="card__icon card__icon--big">${movie.poster.icon}</span>
-    </div>
-    <div class="detail__info">
-      <h1 class="detail__title">${movie.title}</h1>
-      <p class="detail__meta">${movie.year} · ${movie.country} · ${formatDuration(movie.duration)} · ★ ${movie.rating}</p>
-      <div class="detail__genres">
-        ${movie.genre.map((g) => `<span class="tag">${g}</span>`).join("")}
-      </div>
-      <p class="detail__desc">${movie.description}</p>
-      <a class="btn btn--marquee" href="player.html?id=${movie.id}">▶ Смотреть</a>
-    </div>
-  `;
+  container.innerHTML = renderDetailHTML(movie, `player.html?id=${movie.id}`);
 
   renderRelated(movie);
 }
 
 function renderRelated(movie) {
+  const relatedSection = document.getElementById("related-section");
   const relatedGrid = document.getElementById("related-grid");
   if (!relatedGrid) return;
   const related = MOVIES.filter(
     (m) => m.id !== movie.id && m.genre.some((g) => movie.genre.includes(g))
   ).slice(0, 4);
   const list = related.length > 0 ? related : MOVIES.filter((m) => m.id !== movie.id).slice(0, 4);
+
+  if (list.length === 0) {
+    if (relatedSection) relatedSection.style.display = "none";
+    return;
+  }
+  if (relatedSection) relatedSection.style.display = "";
   relatedGrid.innerHTML = list.map(movieCardHTML).join("");
 }
 
-/* ---------- Плеер ---------- */
+/* ---------- Плеер (player.html?id=) ---------- */
 
 function initPlayerPage() {
   const video = document.getElementById("player-video");
@@ -178,7 +210,8 @@ function initPlayerPage() {
 /* ---------- Инициализация ---------- */
 
 document.addEventListener("DOMContentLoaded", () => {
-  initIndexPage();
+  initHomePage();
+  initCatalogPage();
   initMoviePage();
   initPlayerPage();
 });

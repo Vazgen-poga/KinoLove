@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Кинозал</title>
+  <title>Все фильмы — Кинозал</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -11,20 +11,18 @@
   <header class="site-header">
     <a href="index.html" class="logo">КИНО<span>ЗАЛ</span></a>
     <nav>
-      <a href="movies.html">Все фильмы</a>
+      <a href="index.html">Главная</a>
     </nav>
   </header>
 
   <div class="filmstrip"></div>
 
-  <section class="detail" id="home-detail">
-    <!-- заполняется скриптом script.js: главный фильм = MOVIES[0] -->
-  </section>
+  <div class="toolbar">
+    <div class="toolbar__filters" id="genre-filters"></div>
+    <input type="text" id="search-input" placeholder="Поиск фильма…" />
+  </div>
 
-  <section class="related" id="other-movies" style="display:none;">
-    <h2>Другие фильмы</h2>
-    <div class="grid" id="other-grid" style="padding:0;"></div>
-  </section>
+  <main class="grid" id="movie-grid"></main>
 
   <footer class="site-footer">
     Кинозал · демонстрационный проект онлайн-кинотеатра
